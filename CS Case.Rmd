@@ -1,6 +1,27 @@
-# Case Study
-library(caret)
+---
+title: "CS Crystal Report"
+author: "Milton Candela"
+date: "3/6/2022"
+output: pdf_document
+---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(caret)
+library(randomForest)
+```
+
+Packages used:
+
+* caret
+* randomForest
+
+
+## Data Preparation
+
+
+```{r cars}
 df <- read.csv('Automotive_2.csv', colClasses = c('character', 'character', 'factor', 'factor', 'character',
                                                   'factor', 'factor', 'character', 'factor', 'character',
                                                   'factor', 'numeric', 'character', 'factor', 'factor',
@@ -95,8 +116,11 @@ df <- df[, -grep('lastSeen', colnames(df))]
 df2 <- df
 y <- df2[, 'sold']
 df2 <- df2[, -grep('sold', colnames(df2))]
+```
 
-# Filling missing values
+## Filling missing values
+
+```{r pressure}
 set.seed(1002)
 missing_cat_cols <- c('gearbox', 'vehicleType', 'notRepairedDamage', 'fuelType')
 full_cols <- colnames(df2)[!colnames(df2) %in% missing_cat_cols]
@@ -107,7 +131,8 @@ fill_missing <- function(df2, col_name){
      
      train_data <- df2[df2[,col_name]!='',c(full_cols, col_name)]
      train_data[, col_name] <- droplevels(train_data[, col_name])
-     train_data <- downSample(x = train_data[, -grep(col_name, colnames(train_data))], y = train_data[, col_name])
+     names(train_data)[names(train_data) == col_name] <- 'Class'
+     #train_data <- downSample(x = train_data[, -grep(col_name, colnames(train_data))], y = train_data[, col_name])
      
      print(summary(train_data[, 'Class']))
      
@@ -127,12 +152,11 @@ for (missing_col in missing_cat_cols){
 }
 
 df3 <- df2
+```
 
-# Classification model (assumming binary variable sold)
-#df3[,'sold'] <- as.factor(y)
+## Classification model
 
-#write.csv(df3, 'processed.csv')
-
+```{r }
 set.seed(500)
 
 df3 <- downSample(df3, as.factor(y), yname = 'sold')
@@ -150,14 +174,9 @@ testing <- testing[, c(imp_cols, 'sold')]
 write.csv(training, 'training.csv')
 write.csv(testing, 'testing.csv')
 
-#write.csv(df3, 'training.csv')
-#write.csv(df3, 'testing.csv')
-
 set.seed(1000)
 
 model <- train(sold ~ ., data = training, method = 'rpart')
 pred <- predict(model, testing, type = 'raw')
-confusionMatrix(pred, testing$sold)
-
-# Regression model (predicting number of days until sold)
-
+print(confusionMatrix(pred, testing$sold))
+```
